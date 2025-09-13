@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        .image-preview {
+            margin-top: 10px;
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+        .json-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            width: 200px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .url-option {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add New Product</h1>
+        
+        <form id="productForm">
+            <div class="form-group">
+                <label for="productId">Product ID:</label>
+                <input type="number" id="productId" value="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="productName">Product Name:</label>
+                <input type="text" id="productName" placeholder="Enter product name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="productPrice">Price ($):</label>
+                <input type="number" id="productPrice" step="0.01" placeholder="0.00" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="productImage">Product Image:</label>
+                <input type="file" id="productImage" accept="image/*" onchange="handleImageSelect(event)">
+                <div class="url-option">
+                    <small>Or enter image URL: </small>
+                    <input type="text" id="imageUrl" placeholder="/images/product.png or https://example.com/image.jpg" style="margin-top: 5px;">
+                </div>
+                <img id="imagePreview" class="image-preview" alt="Image preview">
+            </div>
+        </form>
+        
+        <h3>FormData Preview:</h3>
+        <div id="jsonPreview" class="json-preview">
+FormData will contain:
+- id: 1
+- name: ""
+- price: 0
+- image: (no file selected)
+        </div>
+        
+        <button id="sendButton" onclick="sendProductData()">Send POST Request</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Update FormData preview when inputs change
+        function updateFormDataPreview() {
+            const id = document.getElementById('productId').value || 1;
+            const name = document.getElementById('productName').value || '';
+            const price = parseFloat(document.getElementById('productPrice').value) || 0;
+            
+            const imageUrl = document.getElementById('imageUrl').value;
+            const imageFile = document.getElementById('productImage').files[0];
+            
+            let preview = 'FormData will contain:\n';
+            preview += `- id: ${id}\n`;
+            preview += `- name: "${name}"\n`;
+            preview += `- price: ${price}\n`;
+            
+            if (imageFile) {
+                preview += `- image: [File] ${imageFile.name} (${(imageFile.size / 1024).toFixed(1)}KB)`;
+            } else if (imageUrl) {
+                preview += `- imageUrl: "${imageUrl}"`;
+            } else {
+                preview += `- image: (no file selected)`;
+            }
+            
+            document.getElementById('jsonPreview').textContent = preview;
+        }
+        
+        // Handle image file selection
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('imagePreview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                
+                // Clear URL input when file is selected
+                document.getElementById('imageUrl').value = '';
+            } else {
+                preview.style.display = 'none';
+            }
+            
+            updateFormDataPreview();
+        }
+        
+        // Add event listeners to all inputs
+        document.getElementById('productId').addEventListener('input', updateFormDataPreview);
+        document.getElementById('productName').addEventListener('input', updateFormDataPreview);
+        document.getElementById('productPrice').addEventListener('input', updateFormDataPreview);
+        document.getElementById('imageUrl').addEventListener('input', function() {
+            // Clear file input when URL is entered
+            document.getElementById('productImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            updateFormDataPreview();
+        });
+        
+        // Send product data using FormData
+        async function sendProductData() {
+            const button = document.getElementById('sendButton');
+            const result = document.getElementById('result');
+            
+            // Validate form
+            const name = document.getElementById('productName').value.trim();
+            const price = document.getElementById('productPrice').value;
+            
+            if (!name) {
+                alert('Please enter a product name');
+                return;
+            }
+            
+            if (!price || price <= 0) {
+                alert('Please enter a valid price');
+                return;
+            }
+            
+            // Disable button during request
+            button.disabled = true;
+            button.textContent = 'Sending...';
+            
+            // Hide previous result
+            result.style.display = 'none';
+            
+            // Create FormData object
+            const formData = new FormData();
+            
+            const id = parseInt(document.getElementById('productId').value) || 1;
+            const imageUrl = document.getElementById('imageUrl').value;
+            const imageFile = document.getElementById('productImage').files[0];
+            
+            // Append form fields to FormData
+            formData.append('id', id);
+            formData.append('name', name);
+            formData.append('price', parseFloat(price));
+            
+            // Handle image - either file or URL
+            if (imageFile) {
+                formData.append('image', imageFile);
+            } else if (imageUrl) {
+                formData.append('imageUrl', imageUrl);
+            }
+            
+            try {
+                const response = await fetch('http://localhost:3500/product', {
+                    method: 'POST',
+                    body: formData
+                    // headers: {
+                    //     'Content-Type': "application/json"
+                    // }
+                });
+                
+                if (response.ok) {
+                    const responseData = await response.text();
+                    result.className = 'success';
+                    result.innerHTML = `<strong>Success!</strong><br>Product added successfully!<br>Status: ${response.status}<br>Response: ${responseData || 'No response body'}`;
+                    
+                    // Optionally reset form
+                    // document.getElementById('productForm').reset();
+                    // updateFormDataPreview();
+                } else {
+                    result.className = 'error';
+                    result.innerHTML = `<strong>Error!</strong><br>Status: ${response.status}<br>Response: ${await response.text()}`;
+                }
+            } catch (error) {
+                result.className = 'error';
+                result.innerHTML = `<strong>Network Error!</strong><br>Make sure your server is running on localhost:3500<br>Error: ${error.message}`;
+            }
+            
+            // Show result and re-enable button
+            result.style.display = 'block';
+            button.disabled = false;
+            button.textContent = 'Send POST Request';
+        }
+        
+        // Initialize FormData preview
+        updateFormDataPreview();
+    </script>
+</body>
+</html>
