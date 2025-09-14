@@ -23,7 +23,7 @@ export class Functions {
         return await cart.find({ productReference: criteria }).toArray();
     }
 
-    async addInCart(productTarget, collections, ref) {
+    async addInCart(productTarget, collections, ref, quantity) {
         try {
             const cart = this.db.collection(collections.cart);
             const product = await this.getProduct(collections.products, productTarget);
@@ -35,26 +35,39 @@ export class Functions {
                 }));
             } 
 
-            /** COMMENT THIS IF U DON'T WANT SAME-MULTIPLE PRODUCTS TO BE CART  */
+            /** COMMENT THIS IF U WANT SAME-MULTIPLE PRODUCTS TO BE CART  */
 
-            const isInCart = await this.inCart(collections.cart, productTarget);
+            // const isInCart = await this.inCart(collections.cart, productTarget);
 
-            if (isInCart && isInCart.length) {
-                throw new Error(JSON.stringify({
-                    Error: "cartError",
-                    Message: "Product Already In Cart"
-                }))
-            }
+            // if (isInCart && isInCart.length) {
+            //     throw new Error(JSON.stringify({
+            //         Error: "cartError",
+            //         Message: "Product Already In Cart"
+            //     }))
+            // }
 
             /** IN-CART CHECK FOR SAME PRODUCT - END CODE LINE----------------  */
 
             await cart.insertOne({
                 productReference: productTarget,
                 date: new Date(),
-                cartId: ref
+                cartId: ref,
+                ...(quantity ? { quantity } : {})
             });
 
             return product;
+        } catch(err) {
+            console.error(err);
+            return err;
+        }
+    }
+
+    async removeAllInCart(collections) {
+        try {
+            const cart = this.db.collection(collections.cart);
+            await cart.deleteMany({});
+
+            return "Successfully Deleted All In Cart";
         } catch(err) {
             console.error(err);
             return err;
@@ -93,7 +106,56 @@ export class Functions {
         return await cart.find({}).toArray();   
     }
 
-    async placeOrder(options) {
-        
+    async placeOrder(collections) {
+        const products = await this.getProducts(collections.productsCollection);
+        const getInCart = await this.getInCart(collections.cartCollection);
+
+        function getPrice() {
+            let totalPrice = 0;
+            let orderItems = [];
+            let itemsTotal = 0;
+
+            getInCart.map((cart) => {
+                const product = products.find((prod) => prod['id'] === cart.productReference['id'] && prod['name'] === cart.productReference['name']);
+                if (product) {
+                    totalPrice += parseFloat(product.price * cart.quantity); 
+
+                    cart.productDetails = { ...product };
+                    cart.itemTotal = totalPrice;
+
+                    orderItems.push(cart);
+                    itemsTotal += ( 1 * cart.quantity );
+                }
+            });
+
+            return {
+                totalPrice,
+                orderItems,
+                itemsTotal
+            }
+        };
+
+        try {
+            const order = this.db.collection(collections.orderCollection);
+            const cart = this.db.collection(collections.cartCollection);
+
+            const summary = {};
+
+            summary.orderId = `ORDER-${Date.now()}`;
+            summary.items = getPrice().orderItems;
+            summary.totalAmount = getPrice().totalPrice;
+            summary.totalItemsCart = getPrice().orderItems['length'];
+            summary.totalItems = getPrice().itemsTotal;
+            summary.orderDate = new Date().toISOString();
+
+            order.insertOne(summary);
+            cart.deleteMany({});
+            
+            return summary;
+
+        } catch(err) {
+            console.error(err);
+            return err;
+        }
     }
 }

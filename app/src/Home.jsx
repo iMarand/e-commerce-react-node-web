@@ -16,7 +16,7 @@ function Home({ products, handleProductClick, searchQuery, filteredProducts }) {
     
     return (
         <>
-            <div className="flex gap-8">
+            <div className="flex relative gap-8">
                 <Aside />
                 <section className="flex-1">
                     <header className="flex items-center justify-between mb-6">

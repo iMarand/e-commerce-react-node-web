@@ -54,20 +54,20 @@ app.post("/product", upload.single("image"), async function(request, response) {
     }
 
     const productsCollection = DB.collection(COLLECTIONS.PRODUCTS);
-    const filePath = await uploadImage(request.file) || sentData.imageUrl;
+    const filePath = request.file ? await uploadImage(request.file) : sentData.imageUrl;
 
     await productsCollection.insertOne({
         id: sentData.id,
         name: sentData.name,
         price: sentData.price,
-        ...(filePath && { image: path.normalize(filePath).replace(/\\/g, "/") })
+        ...(filePath && { image: request.file ? path.normalize(filePath).replace(/\\/g, "/") : filePath })
     });
   
     response.status(200).send(productsExists);
 });
 
 app.post("/cart/add", async function(request, response) {
-    const { product_id, product_name, inCartId } = request.body;
+    const { product_id, product_name, inCartId, quantity } = request.body;
 
     if (!product_id || !product_name) {
         const e = new Object;
@@ -88,38 +88,49 @@ app.post("/cart/add", async function(request, response) {
     }, {
         cart: COLLECTIONS.CART,
         products: COLLECTIONS.PRODUCTS
-    }, inCartId);
+    }, inCartId, quantity);
 
     response.status(200).json(carted);
 });
 
 app.post("/cart/remove", async function(request, response) {
-    const { product_id, product_name, inCartId } = request.body;
+    const removeAll = (request.query.all == true);
 
-    if (!product_id || !product_name) {
-        const e = new Object;
-
-        e.message = "Missing all needed info";
-        e.error = "Bad Request";
-
-        console.error(e.message);
-        return response.status(400).json({
-            Error: e.error,
-            Message: e.message
+    if (removeAll) {
+        const uncart = await new Functions(DB).removeAllInCart({
+            cart: COLLECTIONS.CART,
+            products: COLLECTIONS.PRODUCTS
         });
+    
+        response.status(200).json(uncart);
+    } else {
+        const { product_id, product_name, inCartId } = request.body;
+    
+        if (!product_id || !product_name) {
+            const e = new Object;
+    
+            e.message = "Missing all needed info";
+            e.error = "Bad Request";
+    
+            console.error(e.message);
+            return response.status(400).json({
+                Error: e.error,
+                Message: e.message
+            });
+        }
+    
+        const uncart = await new Functions(DB).removeInCart({
+            id: product_id,
+            name: product_name
+        }, {
+            cart: COLLECTIONS.CART,
+            products: COLLECTIONS.PRODUCTS
+        }, {
+            incartId: inCartId,
+        });
+    
+        response.status(200).json(uncart);
     }
-
-    const uncart = await new Functions(DB).removeInCart({
-        id: product_id,
-        name: product_name
-    }, {
-        cart: COLLECTIONS.CART,
-        products: COLLECTIONS.PRODUCTS
-    }, {
-        incartId: inCartId,
-    });
-
-    response.status(200).json(uncart);
 });
 
 app.get("/cart", async function(request, response) {
@@ -134,7 +145,6 @@ app.get("/cart", async function(request, response) {
 });
 
 app.post("/order", async function(request, response) {
-    const orderId = crypto.randomUUID();
     const orderExists = await isCollectionExists(COLLECTIONS['ORDER'], DB);
 
     if (!orderExists) {
@@ -144,17 +154,14 @@ app.post("/order", async function(request, response) {
     const makeOrder = await new Functions(DB).placeOrder({
         orderCollection: COLLECTIONS.ORDERS,
         cartCollection: COLLECTIONS.CART,
-        orderId: orderId
+        productsCollection: COLLECTIONS.PRODUCTS,
     });
 
     response.status(200).json(makeOrder);
 })
 
 app.get("/", async function(request, response) {
-    const ordersExists = await isCollectionExists("orders", DB);
-    await DB.createCollection("orders");
-
-    response.status(200).send("Hello world");
+    response.status(200).send("Welcome to our server");
 });
 
 // app.get("/terminate", async function(request, response) {

@@ -7,6 +7,7 @@ import Card from './Card';
 import Cart from './Cart';
 import Home from './Home';
 import Favorites from './Favorite';
+import Checkout from './Checkout';
 
 // const ProductGrid = ({ products, onProductClick }) => {
 //     return (
@@ -104,6 +105,7 @@ const Main = () => {
                 <Routes>
                     <Route path='/cart' element={<Cart />}></Route>
                     <Route path='/favorite' element={<Favorites />}></Route>
+                    <Route path='/checkout' element={<Checkout />}></Route>
                     <Route path='/' element={<Home products={products} filteredProducts={filteredProducts} handleProductClick={handleProductClick} searchQuery={searchQuery}/>}></Route>
                 </Routes>
             </menu>

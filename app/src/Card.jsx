@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Plus, Minus, X, ShoppingCart, Star } from 'lucide-react';
 
 const ProductDetailModal = ({ product, isOpen, onClose, quantity, onQuantityChange }) => {
-    console.log(product);
     const [isLoading, setIsLoading] = useState(false);
 
     if (!isOpen || !product) return null;
@@ -37,7 +36,7 @@ const ProductDetailModal = ({ product, isOpen, onClose, quantity, onQuantityChan
                 if (response.ok) {
                     const result = await response.json();
                     console.log('Successfully added to cart:', result);
-                    // Optionally close the modal or show success message
+
                     onClose();
                 } else {
                     console.error('Failed to add to cart:', response.statusText);
@@ -52,14 +51,14 @@ const ProductDetailModal = ({ product, isOpen, onClose, quantity, onQuantityChan
 
     return (
         <>
-            <div className={`fixed inset-0 bg-black/20 transition-opacity duration-300 z-40 ${isOpen ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'}`} onClick={onClose} />
+            <div className={`fixed inset-0 bg-black/50 transition-opacity duration-300 z-50 ${isOpen ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'}`} onClick={onClose} />
             
             <aside className={`fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl transform transition-transform duration-300 ease-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <section className="h-full overflow-y-auto">
                     <header className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between z-10">
                         <h2 className="text-lg font-semibold text-gray-900">Product Details</h2>
                         <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" onClick={onClose} aria-label="Close product details">
-                            <X className="w-5 h-5 text-gray-500" />
+                            <X className="w-5 h-5 text-white" />
                         </button>
                     </header>
 
@@ -68,30 +67,31 @@ const ProductDetailModal = ({ product, isOpen, onClose, quantity, onQuantityChan
                             <div className="aspect-square bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl overflow-hidden">
                                 <img className="w-full h-full object-cover" src={product.image} alt={product.name} onError={(e) => { e.target.src = 'https://questlab.pro/computing/gpu-cloud.jpg'; }} />
                             </div>
-                            <div className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg">
+                            <div className="absolute hidden top-4 right-4 bg-white rounded-full p-2 shadow-lg">
                                 <Heart className="w-5 h-5 text-gray-400 hover:text-red-500 cursor-pointer transition-colors" />
                             </div>
                         </figure>
 
                         <section className="space-y-4">
-                            <main className="flex justify-between">
+                            <main className="flex flex-col justify-between">
                                 <header>
                                     <h2 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h2>
                                 </header>
 
-                                <section className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-3">
+                                <section className="bg-gradient-to-r flex justify-between from-orange-50 to-orange-100 rounded-xl p-3">
                                     <p className="flex items-baseline space-x-2">
                                         <span className="text-xl font-bold text-gray-900">${product.price}</span>
                                         <span className="text-sm text-gray-500 line-through">${(product.price * 1.2).toFixed(2)}</span>
-                                        <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">20% OFF</span>
                                     </p>
+
+                                    <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">20% OFF</span>
                                 </section>
                             </main>
 
                             <fieldset className="space-y-3">
                                 <legend className="block text-sm font-medium text-gray-700">Quantity</legend>
                                 <div className="flex items-center space-x-4">
-                                    <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+                                    <div className="flex px-2 items-center border-2 border-gray-200 rounded-xl overflow-hidden">
                                         <button className="p-3 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" onClick={handleDecrement} disabled={quantity === 0} aria-label="Decrement quantity">
                                             <Minus className="w-4 h-4 text-white" /> 
                                         </button>

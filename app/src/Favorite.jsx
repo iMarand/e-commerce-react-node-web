@@ -17,13 +17,9 @@ const Favorites = () => {
         setQuantities(initialQuantities);
     }, []);
 
-
     const updateQuantity = (productId, newQuantity) => {
         if (newQuantity < 1) return;
-        setQuantities(prev => ({
-            ...prev,
-            [productId]: newQuantity
-        }));
+        setQuantities(prev => ({ ...prev, [productId]: newQuantity }));
     };
 
     const removeFromFavorites = (productId) => {
@@ -31,7 +27,6 @@ const Favorites = () => {
         setFavorites(updatedFavorites);
         localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
         
-        // Remove from quantities as well
         setQuantities(prev => {
             const newQuantities = { ...prev };
             delete newQuantities[productId];
@@ -46,9 +41,7 @@ const Favorites = () => {
         try {
             const response = await fetch('http://localhost:3500/cart/add', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     product_id: product.id,
                     product_name: product.name,
@@ -76,95 +69,73 @@ const Favorites = () => {
 
     if (favorites.length === 0) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
+            <main className="min-h-screen rounded-2xl bg-gray-50 flex items-center justify-center">
+                <section className="text-center">
                     <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h2 className="text-2xl font-semibold text-gray-600 mb-2">No favorites yet</h2>
                     <p className="text-gray-500">Start adding products to your favorites!</p>
-                </div>
-            </div>
+                </section>
+            </main>
         );
     }
 
     return (
-        <div className="min-h-screen py-4 bg-gray-50">
+        <main className="min-h-screen py-4">
             <div className="max-w-6xl mx-auto px-4">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">My Favorites</h1>
                     <p className="text-gray-600">{favorites.length} favorite item{favorites.length !== 1 ? 's' : ''}</p>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {favorites.map((product) => {
                         const isAddingToCart = addingToCart.has(product.id);
                         const currentQuantity = quantities[product.id] || 1;
 
                         return (
-                            <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                                <div className="relative">
+                            <article key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                                <figure className="relative">
                                     <div className="aspect-w-16 aspect-h-12 bg-gradient-to-br from-gray-100 to-gray-200">
-                                        <img 
-                                            src={product.image} 
-                                            alt={product.name}
-                                            className="w-full h-48 object-cover"
-                                            onError={(e) => { 
-                                                e.target.src = 'https://questlab.pro/computing/gpu-cloud.jpg'; 
-                                            }}
-                                        />
+                                        <img className="w-full h-48 object-cover" src={product.image} alt={product.name} onError={(e) => { e.target.src = 'https://questlab.pro/computing/gpu-cloud.jpg'; }} />
                                     </div>
-                                    <button
-                                        onClick={() => removeFromFavorites(product.id)}
-                                        className="absolute top-3 right-3 p-2 bg-white bg-opacity-90 rounded-full shadow-sm hover:bg-opacity-100 transition-all"
-                                    >
+
+                                    <button className="absolute top-3 right-3 p-2 bg-white bg-opacity-90 rounded-full shadow-sm hover:bg-opacity-100 transition-all" onClick={() => removeFromFavorites(product.id)}>
                                         <Heart className="w-5 h-5 text-red-500 fill-current" />
                                     </button>
-                                </div>
+                                </figure>
 
-                                <div className="p-6">
+                                <section className="p-6">
                                     <h3 className="font-semibold text-gray-900 text-lg mb-2">{product.name}</h3>
                                     <p className="text-sm text-gray-500 mb-4">Product ID: {product.id}</p>
                                     
-                                    <div className="mb-4">
+                                    <menu className="mb-4">
                                         <p className="text-2xl font-bold text-orange-600">${product.price}</p>
-                                    </div>
+                                    </menu>
 
-                                    <div className="flex items-center justify-between mb-4">
+                                    <menu className="flex items-center justify-between mb-4">
                                         <span className="text-sm text-gray-600">Quantity:</span>
                                         <div className="flex items-center space-x-2">
-                                            <button
-                                                onClick={() => updateQuantity(product.id, currentQuantity - 1)}
-                                                disabled={currentQuantity <= 1}
-                                                className="p-1 rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
+                                            <button className="p-1 rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => updateQuantity(product.id, currentQuantity - 1)} disabled={currentQuantity <= 1}>
                                                 <Minus className="w-4 h-4 text-white" />
                                             </button>
                                             <span className="px-3 py-1 bg-gray-100 rounded-lg min-w-[40px] text-center font-semibold">
                                                 {currentQuantity}
                                             </span>
-                                            <button
-                                                onClick={() => updateQuantity(product.id, currentQuantity + 1)}
-                                                className="p-1 rounded-full border border-gray-300 hover:bg-gray-50"
-                                            >
+                                            <button className="p-1 rounded-full border border-gray-300 hover:bg-gray-50" onClick={() => updateQuantity(product.id, currentQuantity + 1)}>
                                                 <Plus className="w-4 h-4 text-white" />
                                             </button>
                                         </div>
-                                    </div>
+                                    </menu>
 
-                                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                                    <menu className="mb-4 p-3 bg-gray-50 rounded-lg">
                                         <div className="flex justify-between items-center">
                                             <span className="text-sm text-gray-600">Total:</span>
-                                            <span className="text-lg font-bold text-gray-900">
-                                                ${(product.price * currentQuantity).toFixed(2)}
-                                            </span>
+                                            <span className="text-lg font-bold text-gray-900">${(product.price * currentQuantity).toFixed(2)}</span>
                                         </div>
-                                    </div>
+                                    </menu>
 
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => addToCart(product)}
-                                            disabled={isAddingToCart}
-                                            className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                                        >
+                                    <menu className="flex space-x-2">
+                                        <button className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2" onClick={() => addToCart(product)} disabled={isAddingToCart}>
                                             {isAddingToCart ? (
                                                 <>
                                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -178,37 +149,23 @@ const Favorites = () => {
                                             )}
                                         </button>
                                         
-                                        <button
-                                            onClick={() => removeFromFavorites(product.id)}
-                                            className="p-3 border-2 border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
-                                            title="Remove from favorites"
-                                        >
+                                        <button style={{background: "#ff171772"}} className="p-3 border-2 border-gray-200 text-red-500 rounded-lg hover:bg-gray-50 transition-colors" onClick={() => removeFromFavorites(product.id)} title="Remove from favorites">
                                             <Trash2 className="w-4 h-4" />
                                         </button>
-                                    </div>
-                                </div>
-                            </div>
+                                    </menu>
+                                </section>
+                            </article>
                         );
                     })}
-                </div>
+                </section>
 
-                {/* Clear All Favorites Button */}
-                <div className="mt-8 text-center">
-                    <button
-                        onClick={() => {
-                            if (confirm('Are you sure you want to clear all favorites?')) {
-                                setFavorites([]);
-                                setQuantities({});
-                                localStorage.removeItem('favorites');
-                            }
-                        }}
-                        className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                    >
+                <footer className="mt-8 text-center">
+                    <button className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors" onClick={() => { if (confirm('Are you sure you want to clear all favorites?')) { setFavorites([]); setQuantities({}); localStorage.removeItem('favorites'); }}}>
                         Clear All Favorites
                     </button>
-                </div>
+                </footer>
             </div>
-        </div>
+        </main>
     );
 };
 
