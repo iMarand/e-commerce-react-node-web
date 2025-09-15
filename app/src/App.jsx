@@ -106,7 +106,7 @@ const Main = () => {
                     <Route path='/cart' element={<Cart />}></Route>
                     <Route path='/favorite' element={<Favorites />}></Route>
                     <Route path='/checkout' element={<Checkout />}></Route>
-                    <Route path='/' element={<Home products={products} filteredProducts={filteredProducts} handleProductClick={handleProductClick} searchQuery={searchQuery}/>}></Route>
+                    <Route path='/' element={<Home loading={loading} products={products} filteredProducts={filteredProducts} handleProductClick={handleProductClick} searchQuery={searchQuery}/>}></Route>
                 </Routes>
             </menu>
         </main>

@@ -12,7 +12,7 @@ const ProductGrid = ({ products, onProductClick }) => {
     );
 };
 
-function Home({ products, handleProductClick, searchQuery, filteredProducts }) {
+function Home({ products, handleProductClick, searchQuery, filteredProducts, loading }) {
     
     return (
         <>
